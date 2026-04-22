@@ -72,6 +72,22 @@ Then trigger it by asking the OpenClaw agent:
 - Patches the gateway Content Security Policy to allow `connect-src http://127.0.0.1:8199` and `media-src blob:`
 - Falls back to browser TTS if Kokoro is unreachable
 
+## Auto-update protection
+
+OpenClaw updates overwrite the patched files. Install the watcher to auto-heal:
+
+```bash
+python scripts/install_watcher.py
+```
+
+Installs a Windows Scheduled Task (`KokoroTTSWatcher`) that:
+- Runs at login (60s delay to let OpenClaw start first)
+- Checks every hour
+- Re-applies the patch and restarts the gateway if OpenClaw updated
+
+View log: `~/.openclaw/workspace/kokoro-watch.log`  
+Uninstall: `python scripts/install_watcher.py --uninstall`
+
 ## License
 
 MIT
