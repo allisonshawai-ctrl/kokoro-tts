@@ -145,10 +145,25 @@ def patch_csp_js(path, port):
 
 def main():
     parser = argparse.ArgumentParser(description="Patch OpenClaw Control UI for Kokoro TTS")
-    parser.add_argument("--voice", default=DEFAULT_VOICE, help=f"Kokoro voice ID (default: {DEFAULT_VOICE})")
+    parser.add_argument("--voice", default=None, help=f"Kokoro voice ID (default: {DEFAULT_VOICE}). Omit to use interactive sampler.")
     parser.add_argument("--port", type=int, default=DEFAULT_PORT, help=f"Kokoro server port (default: {DEFAULT_PORT})")
     parser.add_argument("--openclaw-dir", default=DEFAULT_OPENCLAW_DIR, help="Path to openclaw/dist directory")
+    parser.add_argument("--no-interactive", action="store_true", help="Skip voice sampler and use default voice")
     args = parser.parse_args()
+
+    # Interactive voice selection if no voice specified
+    if args.voice is None and not args.no_interactive:
+        try:
+            sys.path.insert(0, os.path.dirname(__file__))
+            from sample_voices import choose_voice
+            args.voice = choose_voice(port=args.port)
+        except ImportError:
+            print("sample_voices.py not found — using default voice")
+            args.voice = DEFAULT_VOICE
+        except SystemExit:
+            raise
+    elif args.voice is None:
+        args.voice = DEFAULT_VOICE
 
     dist_dir = args.openclaw_dir
     if not os.path.isdir(dist_dir):
